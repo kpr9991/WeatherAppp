@@ -19,7 +19,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends AppCompatActivity {
     long MIN_TIME = 5000;
@@ -28,10 +38,16 @@ public class MainActivity extends AppCompatActivity {
     private String TAG = getClass().getName();
     private MediaPlayer mediaPlayer;
     Button getLocationbutton;
+    Button getWeatherButton;
     String LOCATION_PROVIDER;
     LocationManager locationManager;
     LocationListener locationListener;
-
+    String latitude;
+    String longitude;
+    String APPID="559340dd86fcb83340111729e6240a0e";
+    String WEATHER_URL="https://api.openweathermap.org/data/2.5/weather?";
+    TextView textView;
+    TextView textView2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.e(TAG, "onCreate() method called now:");
@@ -50,8 +66,43 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Getlocation button pressed");
             getLocation();
         });
+        //Code for Weather
+        getWeatherButton=(Button)findViewById(R.id.getWeather);
+        getWeatherButton.setOnClickListener(v->{
+            Log.d(TAG,"Getweather button pressed -> ");
+            getWeather();
+        });
+        //Textview Initialization
+        textView=findViewById(R.id.textView);
+        textView2=findViewById(R.id.textView2);
     }
 
+    public void getWeather(){
+        Log.d(TAG,"Get weather method is being called");
+        RequestParams params=new RequestParams();
+        params.put("lat",latitude);
+        params.put("lon",longitude);
+        params.put("appid",APPID);
+        AsyncHttpClient client=new AsyncHttpClient();
+        client.get(WEATHER_URL,params,new JsonHttpResponseHandler(){
+
+            @Override
+            public void onSuccess(int statusCode,Header[] headers,JSONObject response){
+                Log.d(TAG,"HTTP REQUEST SUCCEEDED");
+                if(WeatherModel.decode(response)){
+                    textView.setText( String.valueOf(WeatherModel.temperature-273.15));
+                    textView2.setText(WeatherModel.cityName);
+                }else{
+                    Log.d(TAG,"Unable to decode json object");
+                }
+
+            }
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                Log.d(TAG,"HTTP REQUEST FAILED");
+            }
+        });
+    }
     public void getLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -82,11 +133,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
-
-
-
     public void Onclick(View view) {          //Play song button
 
         if (mediaPlayer.isPlaying()) {
@@ -110,9 +156,11 @@ public class MainActivity extends AppCompatActivity {
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
-                String latitude=String.valueOf(location.getLatitude());
-                String longitude=String.valueOf(location.getLongitude());
+                latitude=String.valueOf(location.getLatitude());
+                longitude=String.valueOf(location.getLongitude());
                 Uri gmmIntentUri = Uri.parse("geo:"+latitude+","+longitude);
+                Log.d(TAG,"Current latitude :"+latitude);
+                Log.d(TAG,"Current longitude :"+longitude);
             Intent intent=new Intent(Intent.ACTION_VIEW,gmmIntentUri);
             startActivity(intent);
             }
