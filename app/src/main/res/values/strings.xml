@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">ResumeProject1</string>
+    <string name="UserName">Enter username</string>
+    <string name="Password">Enter password</string>
+    <string name="Login">Login</string>
+    <string name="MusicButton" >PLAY MUSIC</string>
+    <string name="getLocation">GET LOCATION</string>
+</resources>
